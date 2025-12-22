@@ -1,6 +1,8 @@
 package functions.tabulated;
 
 import functions.*;
+
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -195,4 +197,250 @@ public final class TabulatedFunctions {
         }
         return factory.createTabulatedFunction(points);
     }
+
+    public static void writeTabulatedFunction(TabulatedFunction function, Writer out)
+            throws IOException {
+
+        PrintWriter writer = new PrintWriter(out);
+        writer.print(function.getPointsCount());
+
+        for (int i = 0; i < function.getPointsCount(); i++) {
+            writer.print(" " + function.getPointX(i));
+            writer.print(" " + function.getPointY(i));
+        }
+
+        writer.println();
+        writer.flush();
+    }
+
+    public static TabulatedFunction readTabulatedFunction(Reader in)
+            throws IOException {
+
+        StreamTokenizer tokenizer = createTokenizer(in);
+
+        tokenizer.nextToken();
+        if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+            throw new IOException("Ожидалось количество точек");
+        }
+
+        int pointsCount;
+        try {
+            pointsCount = Integer.parseInt(tokenizer.sval);
+        } catch (NumberFormatException e) {
+            throw new IOException("Некорректное количество точек: " + tokenizer.sval);
+        }
+
+        if (pointsCount < 2) {
+            throw new IllegalArgumentException("Количество точек должно быть не менее 2");
+        }
+
+        FunctionPoint[] points = new FunctionPoint[pointsCount];
+
+        for (int i = 0; i < pointsCount; i++) {
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение X для точки " + (i+1));
+            }
+
+            double x;
+            try {
+                x = Double.parseDouble(tokenizer.sval);
+            } catch (NumberFormatException e) {
+                throw new IOException("Некорректное значение X: " + tokenizer.sval);
+            }
+
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение Y для точки " + (i+1));
+            }
+
+            double y;
+            try {
+                y = Double.parseDouble(tokenizer.sval);
+            } catch (NumberFormatException e) {
+                throw new IOException("Некорректное значение Y: " + tokenizer.sval);
+            }
+
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        for (int i = 1; i < pointsCount; i++) {
+            if (points[i].getX() <= points[i-1].getX()) {
+                throw new IllegalArgumentException("Точки должны быть упорядочены по X");
+            }
+        }
+
+        return new ArrayTabulatedFunction(points);
+    }
+
+    // ==================== ПЕРЕГРУЖЕННЫЕ МЕТОДЫ СЕРИАЛИЗАЦИИ ====================
+
+    public static TabulatedFunction readTabulatedFunction(Reader in, TabulatedFunctionFactory factory)
+            throws IOException {
+
+        StreamTokenizer tokenizer = createTokenizer(in);
+
+        tokenizer.nextToken();
+        if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+            throw new IOException("Ожидалось количество точек");
+        }
+
+        int pointsCount;
+        try {
+            pointsCount = Integer.parseInt(tokenizer.sval);
+        } catch (NumberFormatException e) {
+            throw new IOException("Некорректное количество точек: " + tokenizer.sval);
+        }
+
+        if (pointsCount < 2) {
+            throw new IllegalArgumentException("Количество точек должно быть не менее 2");
+        }
+
+        FunctionPoint[] points = new FunctionPoint[pointsCount];
+
+        for (int i = 0; i < pointsCount; i++) {
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение X для точки " + (i+1));
+            }
+
+            double x = parseDoubleSafe(tokenizer.sval, "X");
+
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение Y для точки " + (i+1));
+            }
+
+            double y = parseDoubleSafe(tokenizer.sval, "Y");
+
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        for (int i = 1; i < pointsCount; i++) {
+            if (points[i].getX() <= points[i-1].getX()) {
+                throw new IllegalArgumentException("Точки должны быть упорядочены по X");
+            }
+        }
+
+        return factory.createTabulatedFunction(points);
+    }
+
+    public static TabulatedFunction readTabulatedFunction(Reader in, Class<? extends TabulatedFunction> clazz)
+            throws IOException {
+
+        StreamTokenizer tokenizer = createTokenizer(in);
+
+        tokenizer.nextToken(); // пропускаем имя класса
+        tokenizer.nextToken(); // Читаем количество точек
+        if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+            throw new IOException("Ожидалось количество точек");
+        }
+
+        int pointsCount;
+        try {
+            pointsCount = Integer.parseInt(tokenizer.sval);
+        } catch (NumberFormatException e) {
+            throw new IOException("Некорректное количество точек: " + tokenizer.sval);
+        }
+
+        if (pointsCount < 2) {
+            throw new IllegalArgumentException("Количество точек должно быть не менее 2");
+        }
+
+        FunctionPoint[] points = new FunctionPoint[pointsCount];
+
+        for (int i = 0; i < pointsCount; i++) {
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение X для точки " + (i+1));
+            }
+
+            double x = parseDoubleSafe(tokenizer.sval, "X");
+
+            tokenizer.nextToken();
+            if (tokenizer.ttype != StreamTokenizer.TT_WORD) {
+                throw new IOException("Ожидалось значение Y для точки " + (i+1));
+            }
+
+            double y = parseDoubleSafe(tokenizer.sval, "Y");
+
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        for (int i = 1; i < pointsCount; i++) {
+            if (points[i].getX() <= points[i-1].getX()) {
+                throw new IllegalArgumentException("Точки должны быть упорядочены по X");
+            }
+        }
+
+        try {
+            Constructor<? extends TabulatedFunction> constructor =
+                    clazz.getConstructor(FunctionPoint[].class);
+            return constructor.newInstance((Object) points);
+        } catch (Exception e) {
+            throw new IOException("Не удалось создать экземпляр класса " + clazz.getName(), e);
+        }
+    }
+
+    public static void writeTabulatedFunction(TabulatedFunction function, Writer out,
+                                              TabulatedFunctionFactory factory) throws IOException {
+        PrintWriter writer = new PrintWriter(out);
+
+        writer.print(function.getPointsCount());
+
+        for (int i = 0; i < function.getPointsCount(); i++) {
+            writer.print(" " + function.getPointX(i));
+            writer.print(" " + function.getPointY(i));
+        }
+
+        writer.println();
+        writer.flush();
+    }
+
+    public static void writeTabulatedFunction(TabulatedFunction function, Writer out,
+                                              Class<? extends TabulatedFunction> clazz)
+            throws IOException {
+        PrintWriter writer = new PrintWriter(out);
+
+        writer.print(clazz.getName() + " ");
+        writer.print(function.getPointsCount());
+
+        for (int i = 0; i < function.getPointsCount(); i++) {
+            writer.print(" " + function.getPointX(i));
+            writer.print(" " + function.getPointY(i));
+        }
+
+        writer.println();
+        writer.flush();
+    }
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ====================
+
+    private static StreamTokenizer createTokenizer(Reader in) {
+        StreamTokenizer tokenizer = new StreamTokenizer(in);
+        tokenizer.resetSyntax();
+        tokenizer.wordChars('a', 'z');
+        tokenizer.wordChars('A', 'Z');
+        tokenizer.wordChars('0', '9');
+        tokenizer.wordChars('.', '.');
+        tokenizer.wordChars('-', '-');
+        tokenizer.wordChars('_', '_');
+        tokenizer.wordChars('$', '$');
+        tokenizer.wordChars('[', '[');
+        tokenizer.wordChars(']', ']');
+        tokenizer.whitespaceChars(' ', ' ');
+        tokenizer.whitespaceChars('\t', '\t');
+        tokenizer.whitespaceChars('\n', '\n');
+        tokenizer.whitespaceChars('\r', '\r');
+        return tokenizer;
+    }
+
+    private static double parseDoubleSafe(String value, String fieldName) throws IOException {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            throw new IOException("Некорректное значение " + fieldName + ": " + value);
+        }
+    }
+
 }
