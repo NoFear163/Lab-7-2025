@@ -4,7 +4,7 @@ import functions.*;
 import java.io.*;
 import java.util.Iterator;
 
-public class LinkedListTabulatedFunction implements TabulatedFunction, Externalizable, Cloneable {
+public class LinkedListTabulatedFunction implements TabulatedFunction, Externalizable {
 
     protected class FunctionNode implements Serializable {
         private static final long serialVersionUID = 3L;

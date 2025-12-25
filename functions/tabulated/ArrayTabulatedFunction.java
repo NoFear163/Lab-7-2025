@@ -4,7 +4,7 @@ import functions.*;
 import java.io.Serializable;
 import java.util.Iterator;
 
-public class ArrayTabulatedFunction implements TabulatedFunction, Serializable, Cloneable {
+public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
     private static final long serialVersionUID = 2L;
     private FunctionPoint[] points;
     private int pointsCount;

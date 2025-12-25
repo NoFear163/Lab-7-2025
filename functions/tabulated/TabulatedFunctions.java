@@ -1,7 +1,6 @@
 package functions.tabulated;
 
 import functions.*;
-
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -267,6 +266,40 @@ public final class TabulatedFunctions {
         for (int i = 1; i < pointsCount; i++) {
             if (points[i].getX() <= points[i-1].getX()) {
                 throw new IllegalArgumentException("Точки должны быть упорядочены по X");
+            }
+        }
+
+        return new ArrayTabulatedFunction(points);
+    }
+
+    // Метод для записи в бинарный поток
+    public static void writeTabulatedFunction(TabulatedFunction function, DataOutput out)
+            throws IOException {
+        int pointsCount = function.getPointsCount();
+        out.writeInt(pointsCount);
+
+        for (int i = 0; i < pointsCount; i++) {
+            out.writeDouble(function.getPointX(i));
+            out.writeDouble(function.getPointY(i));
+        }
+    }
+
+    // Метод для чтения из бинарного потока
+    public static TabulatedFunction readTabulatedFunction(DataInput in)
+            throws IOException {
+        int pointsCount = in.readInt();
+
+        FunctionPoint[] points = new FunctionPoint[pointsCount];
+
+        for (int i = 0; i < pointsCount; i++) {
+            double x = in.readDouble();
+            double y = in.readDouble();
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        for (int i = 1; i < pointsCount; i++) {
+            if (points[i].getX() <= points[i-1].getX()) {
+                throw new IOException("Точки не упорядочены по X");
             }
         }
 
